@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bath Research & Analytics System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+:root{
+  --paper:#EFEEE6;
+  --panel:#FFFFFF;
+  --ink:#17262B;
+  --ink-soft:#4E5A5C;
+  --rule:#D6D0C0;
+  --teal:#1F5F55;
+  --teal-dark:#123B35;
+  --teal-tint:#E4EFEB;
+  --amber:#A8471F;
+  --amber-tint:#F5E7DE;
+  --good:#2E7D46;
+  --good-tint:#E5F1E7;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Inter',sans-serif; padding:28px 32px 80px;
+}
+.wrap{max-width:1180px;margin:0 auto;}
+h1{
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px;
+  margin:0 0 2px; letter-spacing:-0.01em;
+}
+.sub{color:var(--ink-soft); font-size:13.5px; margin-bottom:22px;}
+.sub b{color:var(--teal-dark);}
+
+.bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:22px;}
+.bar label{font-size:12.5px; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+.bar input[type=month]{
+  font-family:'IBM Plex Mono',monospace; font-size:14px; padding:7px 10px;
+  border:1px solid var(--rule); border-radius:4px; background:var(--panel); color:var(--ink);
+}
+.pillbtn{
+  font-family:'Inter',sans-serif; font-weight:600; font-size:13px; padding:8px 16px;
+  border-radius:20px; border:1px solid var(--teal); background:var(--teal); color:#fff;
+  cursor:pointer; transition:opacity .15s;
+}
+.pillbtn.secondary{background:transparent;color:var(--teal-dark);}
+.pillbtn:hover{opacity:.85;}
+.pillbtn:disabled{opacity:.4; cursor:not-allowed;}
+.pillbtn.flash{background:var(--good) !important; color:#fff !important; border-color:var(--good) !important;}
+.pillbtn.flasherr{background:var(--amber) !important; color:#fff !important; border-color:var(--amber) !important;}
+
+.panel{
+  background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+  padding:20px 22px; margin-bottom:22px;
+}
+.panel h2{
+  font-family:'Space Grotesk',sans-serif; font-size:15px; margin:0 0 12px;
+  color:var(--teal-dark); text-transform:uppercase; letter-spacing:.05em;
+}
+
+#drop{
+  border:2px dashed var(--rule); border-radius:8px; padding:30px 20px; text-align:center;
+  color:var(--ink-soft); font-size:14px; cursor:pointer; transition:border-color .15s, background .15s;
+}
+#drop.hover{border-color:var(--teal); background:var(--teal-tint);}
+#drop .big{font-family:'Space Grotesk',sans-serif; font-size:16px; color:var(--ink); margin-bottom:4px;}
+#fileInput{display:none;}
+
+#fileList{margin-top:16px; display:flex; flex-direction:column; gap:8px;}
+.frow{
+  display:flex; align-items:center; gap:10px; font-size:13px; padding:8px 10px;
+  background:var(--paper); border-radius:6px; border:1px solid var(--rule);
+}
+.frow .fname{flex:1; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.frow select{font-family:'Inter',sans-serif; font-size:12.5px; padding:4px 6px; border-radius:4px; border:1px solid var(--rule); background:#fff;}
+.badge{font-size:11px; font-weight:600; padding:3px 8px; border-radius:10px;}
+.badge.ok{background:var(--good-tint); color:var(--good);}
+.badge.warn{background:var(--amber-tint); color:var(--amber);}
+
+.grid{
+  display:grid; grid-template-columns:130px repeat(6,1fr); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden; font-size:12px;
+}
+.grid > div{background:var(--panel); padding:8px 6px; text-align:center;}
+.grid .hdr{background:var(--teal-dark); color:#fff; font-weight:600; font-family:'Space Grotesk',sans-serif; font-size:11.5px;}
+.grid .facname{background:#fff; text-align:left; font-weight:600; padding-left:10px; font-size:12px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#DCD7C6;}
+.dot.got{background:var(--good);}
+
+table.ledger{width:100%; border-collapse:collapse; font-size:13px;}
+table.ledger th{
+  text-align:left; font-family:'Space Grotesk',sans-serif; font-size:11px; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--ink-soft); border-bottom:2px solid var(--rule); padding:6px 8px;
+}
+table.ledger td{padding:9px 8px; border-bottom:1px solid var(--rule); vertical-align:middle;}
+table.ledger tr:last-child td{border-bottom:none;}
+.code{font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--teal-dark); font-size:12px;}
+.desc{font-size:12.5px; color:var(--ink-soft); max-width:230px;}
+.num{font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:right;}
+.breakdown{display:flex; gap:6px; flex-wrap:wrap;}
+.breakdown label{font-size:10px; color:var(--ink-soft); display:block; text-align:center;}
+.breakdown input{
+  width:52px; font-family:'IBM Plex Mono',monospace; font-size:12px; text-align:center;
+  padding:4px 2px; border:1px solid var(--rule); border-radius:4px;
+}
+.ring{
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--teal) calc(var(--pct)*1%), #E3DECD 0);
+}
+.ring span{
+  width:28px;height:28px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:600; color:var(--ink);
+}
+.outputhdr{
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:var(--teal-dark);
+  margin:24px 0 8px; padding-bottom:6px; border-bottom:2px solid var(--teal);
+}
+.srcbadge{font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:.03em;}
+.srcbadge.auto{background:var(--good-tint); color:var(--good);}
+.srcbadge.manual{background:var(--amber-tint); color:var(--amber);}
+.srcbadge.check{background:#EFE6C8; color:#7A5B00;}
+
+.footer-actions{display:flex; gap:10px; margin-top:18px; align-items:center; flex-wrap:wrap;}
+.note{font-size:12px; color:var(--ink-soft);}
+.note.success{color:var(--good); font-weight:600;}
+.note.error{color:var(--amber); font-weight:600;}
+.export-group{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.export-group .label{font-size:12px; color:var(--ink-soft); font-weight:600; margin-right:4px;}
+
+/* Export preview area (fallback when downloads are blocked) */
+#exportPreview{
+  display:none; margin-top:16px; padding:16px; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper); max-height:400px; overflow:auto;
+}
+#exportPreview.visible{display:block;}
+#exportPreview .preview-hdr{
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px; color:var(--teal-dark);
+  margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;
+}
+#exportPreview .preview-hdr button{
+  font-size:11px; padding:4px 12px; border-radius:12px; border:1px solid var(--teal);
+  background:var(--teal); color:#fff; cursor:pointer;
+}
+#exportPreviewContent{font-family:'IBM Plex Mono',monospace; font-size:11px; white-space:pre; color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bath Research &amp; Analytics System</h1>
+  <div class="sub" style="font-size:12px; color:var(--ink-soft); margin-bottom:4px; font-style:italic;">by James Gon</div>
+  <div class="sub">Drop this month's facility reports in → indicators fill themselves. Built for the 8-facility Health data (<b>Keew, Lerpiny, Kuerkhan, Thokchak, Dhoreak, Dhornor, Manajang, Tangnyang</b>).</div>
+
+  <div class="bar">
+    <label>Reporting month</label>
+    <input type="month" id="monthPicker">
+    <button class="pillbtn secondary" id="loadBtn">Load saved data for this month</button>
+  </div>
+
+  <div class="panel">
+    <h2>1. Upload this month's files</h2>
+    <div id="drop">
+      <div class="big">Drag files here, or click to choose</div>
+      ANC / EPI / OPD (.xlsx) &nbsp;·&nbsp; Lab / MUAC (.docx) &nbsp;·&nbsp; any number of facilities at once
+    </div>
+    <input type="file" id="fileInput" multiple accept=".xlsx,.docx">
+    <div id="fileList"></div>
+    <div class="footer-actions">
+      <button class="pillbtn" id="processBtn" disabled>Process files</button>
+      <span class="note" id="processNote"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Facility coverage this session</h2>
+    <div id="coverageGrid"></div>
+  </div>
+
+  <div class="panel">
+    <h2>3. Indicator ledger</h2>
+    <div class="note" style="margin-bottom:14px;">Numbers auto-fill from the files you processed. Everything is editable — correct anything before saving. <span class="srcbadge auto">AUTO</span> = pulled from a report · <span class="srcbadge check">CHECK</span> = auto-pulled but mapping unconfirmed · <span class="srcbadge manual">MANUAL</span> = no file source, enter from your own log.</div>
+    <div id="ledger"></div>
+    <div class="footer-actions">
+      <button class="pillbtn" id="saveBtn">Save this month's numbers</button>
+      <span class="note" id="saveNote"></span>
+      <div class="export-group" style="margin-left:auto;">
+        <span class="label">Export:</span>
+        <button class="pillbtn secondary" id="csvBtn">CSV</button>
+        <button class="pillbtn secondary" id="excelBtn">Excel</button>
+        <button class="pillbtn secondary" id="wordBtn">Word</button>
+      </div>
+    </div>
+    <div id="exportPreview">
+      <div class="preview-hdr">
+        <span id="exportPreviewTitle">Export preview</span>
+        <button id="exportPreviewCopy">Copy to clipboard</button>
+      </div>
+      <div id="exportPreviewContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const FACILITIES = {
+  "Keew":["keew"], "Lerpiny":["lerpiny","lerpiiny"], "Kuerkhan":["kuerkhan","kuerkan","kuerk"],
+  "Thokchak":["thokchak","thokchack"], "Dhoreak":["dhoreak","dhoriak"], "Dhornor":["dhornor","dhorndor"],
+  "Manajang":["manajang","manyjang"], "Tangnyang":["tangnyang","tangnang"]
+};
+const REPORT_TYPES = {
+  "ANC":["anc"], "EPI":["epi"], "Health Education":["health_education","health education","healthed"],
+  "Lab":["lab"], "MUAC":["muac"], "OPD":["opd"]
+};
+
+const INDICATORS = [
+  {code:"1.1", output:"Output 1.1 — Access & Facility Support", desc:"Vulnerable individuals accessing essential health care (overall)", target:{total:13859,men:3772,women:3465,boys:1771,girls:4851}, bd:["men","women","boys","girls"], source:"manual"},
+  {code:"1.1.1", output:"Output 1.1 — Access & Facility Support", desc:"Functional health facilities supported", target:{total:8}, bd:[], source:"manual"},
+  {code:"1.1.2", output:"Output 1.1 — Access & Facility Support", desc:"Emergency health kits delivered", target:{total:8}, bd:[], source:"manual"},
+  {code:"1.1.3", output:"Output 1.1 — Access & Facility Support", desc:"Individuals receiving life-saving items from emergency stockpiles", target:{total:13859,men:3772,women:3465,boys:1771,girls:4851}, bd:["men","women","boys","girls"], source:"manual"},
+
+  {code:"1.2.1", output:"Output 1.2 — Health Service Delivery", desc:"Primary healthcare consultations provided", target:{total:13166,men:3300,women:3540,boys:1902,girls:4424}, bd:["men","women","boys","girls"], source:"auto",
+    extract:d=>sumFac(d,f=>({
+      boys:(f.opd?.newAtt?.boys||0)+(f.opd?.reAtt?.boys||0),
+      girls:(f.opd?.newAtt?.girls||0)+(f.opd?.reAtt?.girls||0),
+      men:(f.opd?.newAtt?.men||0)+(f.opd?.reAtt?.men||0),
+      women:(f.opd?.newAtt?.women||0)+(f.opd?.reAtt?.women||0)}))},
+  {code:"1.2.2", output:"Output 1.2 — Health Service Delivery", desc:"People provided with MHPSS services", target:{total:2078,men:312,women:726,girls:420,boys:620}, bd:["men","women","boys","girls"], source:"manual"},
+  {code:"1.2.3", output:"Output 1.2 — Health Service Delivery", desc:"Births attended by skilled health personnel", target:{total:180,women:0}, bd:["women"], source:"auto",
+    extract:d=>sumFac(d,f=>({women:f.anc?.skilled||0}))},
+  {code:"1.2.4", output:"Output 1.2 — Health Service Delivery", desc:"People benefitting from vector-borne (malaria) disease control", target:{total:5087,men:1047,women:1347,boys:1246,girls:1447}, bd:["men","women","boys","girls"], source:"auto",
+    extract:d=>sumFac(d,f=>({boys:f.opd?.malaria?.boys||0,girls:f.opd?.malaria?.girls||0,men:f.opd?.malaria?.men||0,women:f.opd?.malaria?.women||0}))},
+  {code:"1.2.5", output:"Output 1.2 — Health Service Delivery", desc:"People benefitting from waterborne disease control", target:{total:500,men:100,women:135,boys:115,girls:150}, bd:["men","women","boys","girls"], source:"auto",
+    extract:d=>sumFac(d,f=>({boys:f.opd?.diarrhoea?.boys||0,girls:f.opd?.diarrhoea?.girls||0,men:f.opd?.diarrhoea?.men||0,women:f.opd?.diarrhoea?.women||0}))},
+  {code:"1.2.6", output:"Output 1.2 — Health Service Delivery", desc:"Individuals screened for epidemic-prone diseases", target:{total:2500,men:500,women:625,boys:625,girls:750}, bd:["men","women"], source:"check",
+    extract:d=>sumFac(d,f=>({men:f.lab?.men||0,women:f.lab?.women||0}))},
+  {code:"1.2.7", output:"Output 1.2 — Health Service Delivery", desc:"Violence survivors receiving medical assistance (incl. CMR)", target:{total:150,women:80,girls:70}, bd:["women","girls"], source:"auto",
+    extract:d=>sumFac(d,f=>({girls:f.opd?.cmr?.girls||0,women:f.opd?.cmr?.women||0}))},
+  {code:"1.2.8", output:"Output 1.2 — Health Service Delivery", desc:"People vaccinated — DTP3 (Pentavalent dose 3)", target:{total:499,boys:145,girls:154}, bd:["boys","girls"], source:"auto",
+    extract:d=>sumFac(d,f=>({boys:(f.epi?.penta3?.staticM||0)+(f.epi?.penta3?.outreachM||0),girls:(f.epi?.penta3?.staticF||0)+(f.epi?.penta3?.outreachF||0)}))},
+  {code:"1.2.9", output:"Output 1.2 — Health Service Delivery", desc:"People vaccinated — Measles containing vaccine", target:{total:1500,boys:706,girls:794}, bd:["boys","girls"], source:"auto",
+    extract:d=>sumFac(d,f=>({boys:(f.epi?.measles?.staticM||0)+(f.epi?.measles?.outreachM||0),girls:(f.epi?.measles?.staticF||0)+(f.epi?.measles?.outreachF||0)}))},
+
+  {code:"1.3.1", output:"Output 1.3 — Workforce & Community Systems", desc:"Frontline health workers trained on outbreak detection & response", target:{total:49,men:19,women:30}, bd:["men","women"], source:"check",
+    extract:d=>sumFac(d,f=>({men:f.opd?.training?.men||0,women:f.opd?.training?.women||0}))},
+  {code:"1.3.2", output:"Output 1.3 — Workforce & Community Systems", desc:"Community-based complaints/feedback mechanisms established", target:{total:97,men:59,women:38}, bd:["men","women"], source:"manual"},
+  {code:"1.3.3", output:"Output 1.3 — Workforce & Community Systems", desc:"Frontline/community workers trained on emergency surveillance/reporting", target:{total:97,men:59,women:38}, bd:["men","women"], source:"manual"},
+];
+
+function sumFac(data, fn){
+  const out={men:0,women:0,boys:0,girls:0};
+  Object.values(data).forEach(f=>{
+    const r=fn(f)||{};
+    for(const k of ["men","women","boys","girls"]) out[k]+=(r[k]||0);
+  });
+  return out;
+}
+
+/* ---------------- STATE ---------------- */
+let stagedFiles = [];
+let extracted = {};
+let cumulative = {};
+let currentValues = {};
+
+/* ---------------- HELPERS ---------------- */
+function num(v){const n=parseFloat(v); return isNaN(n)?0:n;}
+function detect(name, dict){
+  const lower = name.toLowerCase();
+  for(const key in dict){ if(dict[key].some(a=>lower.includes(a))) return key; }
+  return null;
+}
+function sheetToAOA(ws){ return XLSX.utils.sheet_to_json(ws,{header:1,defval:""}); }
+function findRow(aoa, needle){
+  const n = needle.toLowerCase();
+  for(let r=0;r<aoa.length;r++){
+    for(let c=0;c<aoa[r].length;c++){
+      const v = aoa[r][c];
+      if(typeof v==="string" && v.toLowerCase().includes(n)) return {r,c,row:aoa[r]};
+    }
+  }
+  return null;
+}
+
+async function parseXLSX(arrayBuffer, sheetNameMatcher){
+  const wb = XLSX.read(arrayBuffer, {type:"array"});
+  let sheetName = wb.SheetNames[0];
+  if(sheetNameMatcher){
+    const found = wb.SheetNames.find(n=>sheetNameMatcher.test(n));
+    if(found) sheetName = found;
+  }
+  return sheetToAOA(wb.Sheets[sheetName]);
+}
+
+async function parseDocxTables(arrayBuffer){
+  const result = await mammoth.convertToHtml({arrayBuffer});
+  const html = result.value;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const tables = [...doc.querySelectorAll("table")];
+  return tables.map(t=>[...t.querySelectorAll("tr")].map(tr=>
+    [...tr.querySelectorAll("td,th")].map(td=>td.textContent.trim())
+  ));
+}
+
+function opdRowVals(aoa, label){
+  const hit = findRow(aoa, label);
+  if(!hit) return {boys:0,girls:0,men:0,women:0};
+  const row = hit.row;
+  return {boys:num(row[1]), girls:num(row[2]), men:num(row[5]), women:num(row[6])};
+}
+
+async function extractOPD(buf){
+  const aoa = await parseXLSX(buf, /new hfs/i);
+  const newAtt = opdRowVals(aoa, "MoH F1A New attendance");
+  const reAtt = opdRowVals(aoa, "MoH F1A Re-attendance");
+  const malaria = opdRowVals(aoa, "Total malaria cases treated");
+  const diarrhoea = opdRowVals(aoa, "Diarrhoea (Acute");
+  const cmrHit = findRow(aoa, "Clinically managed rape cases");
+  const cmr = cmrHit ? {girls:num(cmrHit.row[6]), women:num(cmrHit.row[7])} : {girls:0,women:0};
+  const trainHit = findRow(aoa, "Emergency Preparedness and Response");
+  const training = trainHit ? {men:num(trainHit.row[7]), women:num(trainHit.row[8])} : {men:0,women:0};
+  return {newAtt, reAtt, malaria, diarrhoea, cmr, training};
+}
+
+async function extractANC(buf){
+  const aoa = await parseXLSX(buf);
+  const hit = findRow(aoa, "deliveries by skilled attendant");
+  const skilled = hit ? num(hit.row[hit.c+1]) : 0;
+  return {skilled};
+}
+
+function epiRowVals(aoa, label){
+  const hit = findRow(aoa, label);
+  if(!hit) return {staticM:0,staticF:0,outreachM:0,outreachF:0};
+  const row = hit.row;
+  return {staticM:num(row[1]), staticF:num(row[2]), outreachM:num(row[3]), outreachF:num(row[4])};
+}
+
+async function extractEPI(buf){
+  const aoa = await parseXLSX(buf, /routine epi reporting/i);
+  return {penta3: epiRowVals(aoa,"Pentavalent-3"), measles: epiRowVals(aoa,"Measles")};
+}
+
+async function extractLab(buf){
+  const tables = await parseDocxTables(buf);
+  const table = tables[0] || [];
+  const wanted = ["Malaria Test","Typhoid Tests","Brucellosis Tests","Kala_azar Tests","Kala-azar Tests","HAT Tests"];
+  let men=0, women=0;
+  table.forEach(r=>{
+    if(r[0] && wanted.some(w=>r[0].includes(w))){
+      men += num(r[1]) + num(r[3]);
+      women += num(r[2]) + num(r[4]);
+    }
+  });
+  return {men, women};
+}
+
+/* ---------------- UI: FILE STAGING ---------------- */
+const drop = document.getElementById("drop");
+const fileInput = document.getElementById("fileInput");
+const fileListEl = document.getElementById("fileList");
+const processBtn = document.getElementById("processBtn");
+
+drop.addEventListener("click", ()=>fileInput.click());
+drop.addEventListener("dragover", e=>{e.preventDefault(); drop.classList.add("hover");});
+drop.addEventListener("dragleave", ()=>drop.classList.remove("hover"));
+drop.addEventListener("drop", e=>{
+  e.preventDefault(); drop.classList.remove("hover");
+  addFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener("change", e=>addFiles([...e.target.files]));
+
+function addFiles(files){
+  files.forEach(file=>{
+    const facility = detect(file.name, FACILITIES);
+    const type = detect(file.name, REPORT_TYPES);
+    stagedFiles.push({file, facility, type});
+  });
+  renderFileList();
+}
+
+function renderFileList(){
+  fileListEl.innerHTML = "";
+  stagedFiles.forEach((sf, i)=>{
+    const row = document.createElement("div");
+    row.className = "frow";
+    const facOpts = Object.keys(FACILITIES).map(f=>`<option value="${f}" ${sf.facility===f?"selected":""}>${f}</option>`).join("");
+    const typeOpts = Object.keys(REPORT_TYPES).map(t=>`<option value="${t}" ${sf.type===t?"selected":""}>${t}</option>`).join("");
+    row.innerHTML = `
+      <span class="fname" title="${sf.file.name}">${sf.file.name}</span>
+      <select data-i="${i}" data-field="facility"><option value="">Facility?</option>${facOpts}</select>
+      <select data-i="${i}" data-field="type"><option value="">Type?</option>${typeOpts}</select>
+      <span class="badge ${sf.facility&&sf.type?'ok':'warn'}">${sf.facility&&sf.type?'ready':'check'}</span>
+    `;
+    fileListEl.appendChild(row);
+  });
+  fileListEl.querySelectorAll("select").forEach(sel=>{
+    sel.addEventListener("change", e=>{
+      const i = +e.target.dataset.i, field = e.target.dataset.field;
+      stagedFiles[i][field] = e.target.value || null;
+      renderFileList();
+    });
+  });
+  processBtn.disabled = stagedFiles.length===0;
+  document.getElementById("processNote").textContent =
+    stagedFiles.length ? stagedFiles.length + ' file(s) staged — fix any "check" rows above, then process.' : "";
+}
+
+/* ---------------- PROCESS FILES ---------------- */
+processBtn.addEventListener("click", async ()=>{
+  const note = document.getElementById("processNote");
+  note.textContent = "Processing…";
+  note.className = "note";
+  extracted = {};
+  currentValues = {};
+  for(const sf of stagedFiles){
+    if(!sf.facility || !sf.type) continue;
+    const buf = await sf.file.arrayBuffer();
+    extracted[sf.facility] = extracted[sf.facility] || {};
+    try{
+      if(sf.type==="OPD") extracted[sf.facility].opd = await extractOPD(buf);
+      else if(sf.type==="ANC") extracted[sf.facility].anc = await extractANC(buf);
+      else if(sf.type==="EPI") extracted[sf.facility].epi = await extractEPI(buf);
+      else if(sf.type==="Lab") extracted[sf.facility].lab = await extractLab(buf);
+    }catch(err){
+      console.error("Failed to parse", sf.file.name, err);
+    }
+  }
+  note.textContent = "Done — extracted data for " + Object.keys(extracted).length + " facility(ies).";
+  renderCoverage();
+  renderLedger();
+});
+
+/* ---------------- COVERAGE GRID ---------------- */
+function renderCoverage(){
+  const el = document.getElementById("coverageGrid");
+  const types = Object.keys(REPORT_TYPES);
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  grid.innerHTML = '<div class="hdr facname">Facility</div>' + types.map(t=>'<div class="hdr">'+t+'</div>').join("");
+  Object.keys(FACILITIES).forEach(fac=>{
+    grid.innerHTML += '<div class="facname">'+fac+'</div>';
+    types.forEach(t=>{
+      const got = stagedFiles.some(sf=>sf.facility===fac && sf.type===t && extracted[fac] &&
+        ((t==="OPD"&&extracted[fac].opd)||(t==="ANC"&&extracted[fac].anc)||(t==="EPI"&&extracted[fac].epi)||(t==="Lab"&&extracted[fac].lab)));
+      grid.innerHTML += '<div><span class="dot '+(got?'got':'')+'"></span></div>';
+    });
+  });
+  el.innerHTML = "";
+  el.appendChild(grid);
+}
+renderCoverage();
+
+/* ---------------- STORAGE (localStorage with in-memory fallback) ---------------- */
+let _memStore = {};
+let _lsOK = true;
+try { localStorage.setItem("__t__","1"); localStorage.removeItem("__t__"); }
+catch(e) { _lsOK = false; }
+
+const storage = {
+  async list(prefix){
+    const keys = [];
+    if(_lsOK){
+      try { for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith(prefix)) keys.push(k); } }
+      catch(e) {}
+    } else {
+      Object.keys(_memStore).forEach(k=>{ if(k.startsWith(prefix)) keys.push(k); });
+    }
+    return { keys };
+  },
+  async get(key){
+    if(_lsOK){
+      try { const v=localStorage.getItem(key); return v?{value:v}:null; }
+      catch(e) { return null; }
+    }
+    return _memStore[key]?{value:_memStore[key]}:null;
+  },
+  async set(key, value){
+    if(_lsOK){
+      try { localStorage.setItem(key, value); return; }
+      catch(e) {}
+    }
+    _memStore[key] = value;
+  }
+};
+
+async function getMonthKey(){ return "report:"+document.getElementById("monthPicker").value; }
+
+async function loadAllCumulative(){
+  let totals = {};
+  INDICATORS.forEach(i=>totals[i.code]={men:0,women:0,boys:0,girls:0,total:0});
+  try{
+    const listed = await storage.list("report:");
+    if(listed && listed.keys){
+      for(const k of listed.keys){
+        try{
+          const res = await storage.get(k);
+          if(res && res.value){
+            const parsed = JSON.parse(res.value);
+            INDICATORS.forEach(ind=>{
+              const v = parsed[ind.code];
+              if(v){ for(const key of ["men","women","boys","girls","total"]) totals[ind.code][key]+=(v[key]||0); }
+            });
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  return totals;
+}
+
+function computeTotal(v){
+  const sum = (v.men||0)+(v.women||0)+(v.boys||0)+(v.girls||0);
+  return sum > 0 ? sum : (v.total||0);
+}
+
+/* ---------------- LEDGER ---------------- */
+function renderLedger(){
+  const el = document.getElementById("ledger");
+  el.innerHTML = "";
+  let lastOutput = null;
+  INDICATORS.forEach(ind=>{
+    if(ind.output !== lastOutput){
+      const h = document.createElement("div");
+      h.className = "outputhdr";
+      h.textContent = ind.output;
+      el.appendChild(h);
+      lastOutput = ind.output;
+      const table = document.createElement("table");
+      table.className = "ledger";
+      table.innerHTML = '<thead><tr><th>Indicator</th><th>Description</th><th>Target</th><th>This month</th><th>Progress</th></tr></thead><tbody></tbody>';
+      table.dataset.output = ind.output;
+      el.appendChild(table);
+    }
+    const tbody = el.querySelector('table[data-output="'+CSS.escape(ind.output)+'"] tbody');
+
+    let auto = {men:0,women:0,boys:0,girls:0};
+    if(ind.source!=="manual" && ind.extract) auto = ind.extract(extracted);
+    if(!currentValues[ind.code]) currentValues[ind.code] = {...auto};
+    else if(ind.source!=="manual") currentValues[ind.code] = {...auto};
+
+    const cum = cumulative[ind.code] || {men:0,women:0,boys:0,girls:0,total:0};
+    const cumTotalIncCurrent = computeTotal(cum) + computeTotal(currentValues[ind.code]);
+    const pct = ind.target.total ? Math.min(100, Math.round((cumTotalIncCurrent/ind.target.total)*100)) : 0;
+
+    const badgeClass = ind.source==="manual"?"manual":(ind.source==="check"?"check":"auto");
+    const badgeText = ind.source==="manual"?"MANUAL":(ind.source==="check"?"CHECK":"AUTO");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="code">${ind.code}</span><br><span class="srcbadge ${badgeClass}">${badgeText}</span></td>
+      <td class="desc">${ind.desc}</td>
+      <td class="num">${ind.target.total.toLocaleString()}</td>
+      <td>
+        <div class="breakdown">
+          ${(ind.bd.length?ind.bd:["total"]).map(key=>`
+            <div><label>${key}</label>
+              <input type="number" min="0" data-code="${ind.code}" data-key="${key}"
+                value="${currentValues[ind.code][key]!==undefined?currentValues[ind.code][key]:(key==='total'?currentValues[ind.code].total||0:0)}">
+            </div>`).join("")}
+        </div>
+      </td>
+      <td><div class="ring" style="--pct:${pct}"><span>${pct}%</span></div>
+        <div class="note" style="text-align:center;">cum. ${cumTotalIncCurrent.toLocaleString()}</div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  el.querySelectorAll("input[type=number]").forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      const code = e.target.dataset.code, key = e.target.dataset.key;
+      currentValues[code] = currentValues[code] || {};
+      currentValues[code][key] = num(e.target.value);
+      currentValues[code].total = computeTotal(currentValues[code]);
+      updateRowProgress(code);
+    });
+  });
+}
+
+function updateRowProgress(code){
+  const ind = INDICATORS.find(i=>i.code===code);
+  if(!ind) return;
+  const inp = document.querySelector('input[data-code="'+code+'"]');
+  if(!inp) return;
+  const row = inp.closest("tr");
+  if(!row) return;
+  const cum = cumulative[code] || {men:0,women:0,boys:0,girls:0,total:0};
+  const cumTotalIncCurrent = computeTotal(cum) + computeTotal(currentValues[code]);
+  const pct = ind.target.total ? Math.min(100, Math.round((cumTotalIncCurrent/ind.target.total)*100)) : 0;
+  const ring = row.querySelector(".ring");
+  if(ring){
+    ring.style.setProperty("--pct", pct);
+    ring.querySelector("span").textContent = pct + "%";
+  }
+  const cumNote = row.querySelectorAll(".note");
+  if(cumNote.length){
+    cumNote[cumNote.length-1].textContent = "cum. " + cumTotalIncCurrent.toLocaleString();
+  }
+}
+
+/* ---------------- DOWNLOAD HELPER ---------------- */
+/* Tries blob download first, falls back to opening in new tab */
+function downloadBlob(blob, filename, mimeType){
+  // Strategy 1: anchor download (works in most browsers)
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{
+      try { document.body.removeChild(a); } catch(e){}
+      URL.revokeObjectURL(url);
+    }, 200);
+    return true;
+  } catch(e) {
+    console.error("Download failed, trying fallback:", e);
+  }
+  // Strategy 2: open in new tab as fallback
+  try {
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    return true;
+  } catch(e2) {
+    console.error("Fallback also failed:", e2);
+    return false;
+  }
+}
+
+/* Show export content in preview area (ultimate fallback) */
+function showExportPreview(title, content, mimeType){
+  const preview = document.getElementById("exportPreview");
+  const titleEl = document.getElementById("exportPreviewTitle");
+  const contentEl = document.getElementById("exportPreviewContent");
+  titleEl.textContent = title;
+  contentEl.textContent = content;
+  preview.classList.add("visible");
+  // Store content for copy button
+  preview.dataset.copyContent = content;
+  preview.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* Copy to clipboard for preview area */
+document.getElementById("exportPreviewCopy").addEventListener("click", ()=>{
+  const preview = document.getElementById("exportPreview");
+  const content = preview.dataset.copyContent || "";
+  try {
+    navigator.clipboard.writeText(content).then(()=>{
+      const btn = document.getElementById("exportPreviewCopy");
+      const orig = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(()=>btn.textContent = orig, 1500);
+    });
+  } catch(e) {
+    // Fallback: select text
+    const range = document.createRange();
+    range.selectNode(document.getElementById("exportPreviewContent"));
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand("copy");
+    const btn = document.getElementById("exportPreviewCopy");
+    const orig = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(()=>btn.textContent = orig, 1500);
+  }
+});
+
+/* Flash button visual feedback */
+function flashBtn(btnId, success, text){
+  const btn = document.getElementById(btnId);
+  if(!btn) return;
+  const orig = btn.textContent;
+  btn.textContent = text;
+  btn.classList.add(success ? "flash" : "flasherr");
+  setTimeout(()=>{
+    btn.textContent = orig;
+    btn.classList.remove("flash");
+    btn.classList.remove("flasherr");
+  }, 1500);
+}
+
+/* ---------------- SAVE / LOAD ---------------- */
+document.getElementById("saveBtn").addEventListener("click", async ()=>{
+  const note = document.getElementById("saveNote");
+  const key = await getMonthKey();
+  if(key==="report:"){
+    note.textContent = "Pick a reporting month first.";
+    note.className = "note error";
+    return;
+  }
+  note.textContent = "Saving…";
+  note.className = "note";
+  const payload = {};
+  INDICATORS.forEach(ind=>{
+    const v = currentValues[ind.code] || {};
+    payload[ind.code] = {men:v.men||0, women:v.women||0, boys:v.boys||0, girls:v.girls||0, total: computeTotal(v)};
+  });
+  try{
+    await storage.set(key, JSON.stringify(payload));
+    note.textContent = "✓ Saved — cumulative totals updated.";
+    note.className = "note success";
+    cumulative = await loadAllCumulative();
+    Object.keys(payload).forEach(code=>{
+      cumulative[code] = cumulative[code] || {men:0,women:0,boys:0,girls:0,total:0};
+      ["men","women","boys","girls","total"].forEach(k=>{
+        cumulative[code][k] -= (payload[code][k]||0);
+        if(cumulative[code][k] < 0) cumulative[code][k] = 0;
+      });
+    });
+    renderLedger();
+  }catch(e){
+    console.error("Save failed:", e);
+    note.textContent = "✗ Save failed — " + (e.message || "try again");
+    note.className = "note error";
+  }
+});
+
+document.getElementById("loadBtn").addEventListener("click", async ()=>{
+  const key = await getMonthKey();
+  const note = document.getElementById("saveNote");
+  note.textContent = "Loading…";
+  note.className = "note";
+  cumulative = await loadAllCumulative();
+  try{
+    const res = await storage.get(key);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      currentValues = parsed;
+      Object.keys(parsed).forEach(code=>{
+        cumulative[code] = cumulative[code] || {men:0,women:0,boys:0,girls:0,total:0};
+        ["men","women","boys","girls","total"].forEach(k=>{
+          cumulative[code][k] -= (parsed[code][k]||0);
+          if(cumulative[code][k] < 0) cumulative[code][k] = 0;
+        });
+      });
+      note.textContent = "✓ Loaded saved values for this month.";
+      note.className = "note success";
+    } else {
+      currentValues = {};
+      note.textContent = "No saved data yet for this month — process files or enter manually.";
+      note.className = "note";
+    }
+  }catch(e){
+    currentValues = {};
+    note.textContent = "No saved data yet for this month.";
+    note.className = "note";
+  }
+  renderLedger();
+});
+
+/* Month picker change: clear stale data */
+document.getElementById("monthPicker").addEventListener("change", async ()=>{
+  currentValues = {};
+  extracted = {};
+  cumulative = await loadAllCumulative();
+  const key = await getMonthKey();
+  try{
+    const res = await storage.get(key);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      Object.keys(parsed).forEach(code=>{
+        cumulative[code] = cumulative[code] || {men:0,women:0,boys:0,girls:0,total:0};
+        ["men","women","boys","girls","total"].forEach(k=>{
+          cumulative[code][k] -= (parsed[code][k]||0);
+          if(cumulative[code][k] < 0) cumulative[code][k] = 0;
+        });
+      });
+    }
+  }catch(e){}
+  renderLedger();
+  document.getElementById("saveNote").textContent = "";
+  document.getElementById("saveNote").className = "note";
+});
+
+/* ---------------- EXPORT HELPERS ---------------- */
+function getMonthLabel(){
+  return document.getElementById("monthPicker").value || "draft";
+}
+
+function buildExportRows(){
+  const rows = [];
+  INDICATORS.forEach(ind=>{
+    const v = currentValues[ind.code] || {men:0,women:0,boys:0,girls:0,total:0};
+    const cum = cumulative[ind.code] || {men:0,women:0,boys:0,girls:0,total:0};
+    const cumTotal = computeTotal(cum) + computeTotal(v);
+    const pct = ind.target.total ? Math.round((cumTotal/ind.target.total)*100) : 0;
+    rows.push({
+      code: ind.code, desc: ind.desc, output: ind.output, source: ind.source,
+      target: ind.target.total,
+      men: v.men||0, women: v.women||0, boys: v.boys||0, girls: v.girls||0,
+      thisMonth: computeTotal(v), cumulative: cumTotal, progressPct: pct
+    });
+  });
+  return rows;
+}
+
+/* ---------------- EXPORT: CSV ---------------- */
+document.getElementById("csvBtn").addEventListener("click", ()=>{
+  try {
+    const rows = buildExportRows();
+    const headers = ["Code","Output","Description","Source","Target","Men","Women","Boys","Girls","Total (this month)","Cumulative","Progress %"];
+    let csv = headers.join(",") + "\n";
+    rows.forEach(r=>{
+      const esc = s => '"' + String(s).replace(/"/g,'""') + '"';
+      csv += [esc(r.code), esc(r.output), esc(r.desc), esc(r.source), r.target, r.men, r.women, r.boys, r.girls, r.thisMonth, r.cumulative, r.progressPct].join(",") + "\n";
+    });
+    const csvContent = "\uFEFF" + csv;
+    const blob = new Blob([csvContent], {type:"text/csv;charset=utf-8"});
+    const filename = "indicators_" + getMonthLabel() + ".csv";
+    const ok = downloadBlob(blob, filename, "text/csv;charset=utf-8");
+    if(ok){
+      flashBtn("csvBtn", true, "✓ Downloaded");
+    }
+    // Also show in preview as backup
+    showExportPreview("CSV Export — " + filename + " (copy below if download was blocked)", csvContent, "text/csv");
+  } catch(e) {
+    console.error("CSV export failed:", e);
+    flashBtn("csvBtn", false, "✗ Failed");
+  }
+});
+
+/* ---------------- EXPORT: EXCEL ---------------- */
+document.getElementById("excelBtn").addEventListener("click", ()=>{
+  try {
+    const rows = buildExportRows();
+    const monthLabel = getMonthLabel();
+
+    // Sheet 1: Indicator Ledger
+    const aoa = [];
+    aoa.push(["Bath Research & Analytics System — Reporting Month: " + monthLabel]);
+    aoa.push(["Health data: Keew, Lerpiny, Kuerkhan, Thokchak, Dhoreak, Dhornor, Manajang, Tangnyang"]);
+    aoa.push([]);
+    aoa.push(["Code","Output","Description","Source","Target","Men","Women","Boys","Girls","Total (this month)","Cumulative Total","Progress %"]);
+    rows.forEach(r=>{
+      aoa.push([r.code, r.output, r.desc, r.source.toUpperCase(), r.target, r.men, r.women, r.boys, r.girls, r.thisMonth, r.cumulative, r.progressPct + "%"]);
+    });
+    aoa.push([]);
+    aoa.push([]);
+    aoa.push(["Legend:"]);
+    aoa.push(["AUTO", "Pulled automatically from uploaded report files"]);
+    aoa.push(["CHECK", "Auto-pulled but mapping unconfirmed — verify before submitting"]);
+    aoa.push(["MANUAL", "No file source — entered manually from your own log"]);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = [
+      {wch:8},{wch:42},{wch:55},{wch:10},{wch:10},
+      {wch:8},{wch:8},{wch:8},{wch:8},{wch:16},{wch:16},{wch:12}
+    ];
+    ws["!merges"] = [{s:{r:0,c:0},e:{r:0,c:11}},{s:{r:1,c:0},e:{r:1,c:11}}];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Indicator Ledger");
+
+    // Sheet 2: Summary
+    const outputs = {};
+    rows.forEach(r=>{
+      if(!outputs[r.output]) outputs[r.output] = {target:0, thisMonth:0, cumulative:0, count:0};
+      outputs[r.output].target += r.target;
+      outputs[r.output].thisMonth += r.thisMonth;
+      outputs[r.output].cumulative += r.cumulative;
+      outputs[r.output].count++;
+    });
+    const summaryAoa = [];
+    summaryAoa.push(["Summary by Output — " + monthLabel]);
+    summaryAoa.push([]);
+    summaryAoa.push(["Output Area","Indicators","Target Total","This Month Total","Cumulative Total","Overall Progress %"]);
+    Object.keys(outputs).forEach(o=>{
+      const s = outputs[o];
+      const pct = s.target ? Math.round((s.cumulative / s.target) * 100) : 0;
+      summaryAoa.push([o, s.count, s.target, s.thisMonth, s.cumulative, pct + "%"]);
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet(summaryAoa);
+    ws2["!cols"] = [{wch:50},{wch:12},{wch:14},{wch:16},{wch:16},{wch:16}];
+    ws2["!merges"] = [{s:{r:0,c:0},e:{r:0,c:5}}];
+    XLSX.utils.book_append_sheet(wb, ws2, "Summary");
+
+    // Generate and download
+    const wbout = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+    const blob = new Blob([wbout], {type:"application/octet-stream"});
+    const filename = "indicators_" + monthLabel + ".xlsx";
+    const ok = downloadBlob(blob, filename, "application/octet-stream");
+    if(ok){
+      flashBtn("excelBtn", true, "✓ Downloaded");
+    }
+    // Show CSV-equivalent preview as backup
+    let previewText = "Excel export: " + filename + "\n(If the download didn't start, the data is shown below as CSV — copy it into Excel)\n\n";
+    previewText += "Code,Output,Description,Source,Target,Men,Women,Boys,Girls,This Month,Cumulative,Progress %\n";
+    rows.forEach(r=>{
+      previewText += [r.code,r.output,r.desc,r.source,r.target,r.men,r.women,r.boys,r.girls,r.thisMonth,r.cumulative,r.progressPct+"%"].join(",") + "\n";
+    });
+    showExportPreview("Excel Export — " + filename, previewText, "text/plain");
+  } catch(e) {
+    console.error("Excel export failed:", e);
+    flashBtn("excelBtn", false, "✗ Failed");
+  }
+});
+
+/* ---------------- EXPORT: WORD ---------------- */
+document.getElementById("wordBtn").addEventListener("click", ()=>{
+  try {
+    const rows = buildExportRows();
+    const monthLabel = getMonthLabel();
+
+    // Group by output area
+    const grouped = {};
+    rows.forEach(r=>{
+      if(!grouped[r.output]) grouped[r.output] = [];
+      grouped[r.output].push(r);
+    });
+
+    const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+    let tableHtml = "";
+    Object.keys(grouped).forEach(output=>{
+      tableHtml += '<h2 style="color:#123B35;font-family:Calibri,sans-serif;font-size:14pt;border-bottom:2px solid #1F5F55;padding-bottom:4px;">' + escapeHtml(output) + '</h2>';
+      tableHtml += '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:Calibri,sans-serif;font-size:10pt;width:100%;">';
+      tableHtml += '<thead><tr style="background:#123B35;color:#fff;font-weight:bold;">';
+      tableHtml += '<th>Code</th><th>Description</th><th>Source</th><th>Target</th><th>Men</th><th>Women</th><th>Boys</th><th>Girls</th><th>This Month</th><th>Cumulative</th><th>Progress</th>';
+      tableHtml += '</tr></thead><tbody>';
+      grouped[output].forEach(r=>{
+        tableHtml += '<tr>';
+        tableHtml += '<td style="font-family:Consolas,monospace;font-weight:bold;color:#1F5F55;">' + escapeHtml(r.code) + '</td>';
+        tableHtml += '<td>' + escapeHtml(r.desc) + '</td>';
+        var srcColor = r.source==="auto"?"#2E7D46":(r.source==="check"?"#7A5B00":"#A8471F");
+        tableHtml += '<td style="color:' + srcColor + ';font-weight:bold;font-size:8pt;">' + r.source.toUpperCase() + '</td>';
+        tableHtml += '<td style="text-align:right;">' + r.target.toLocaleString() + '</td>';
+        tableHtml += '<td style="text-align:right;">' + r.men.toLocaleString() + '</td>';
+        tableHtml += '<td style="text-align:right;">' + r.women.toLocaleString() + '</td>';
+        tableHtml += '<td style="text-align:right;">' + r.boys.toLocaleString() + '</td>';
+        tableHtml += '<td style="text-align:right;">' + r.girls.toLocaleString() + '</td>';
+        tableHtml += '<td style="text-align:right;font-weight:bold;">' + r.thisMonth.toLocaleString() + '</td>';
+        tableHtml += '<td style="text-align:right;font-weight:bold;">' + r.cumulative.toLocaleString() + '</td>';
+        var pctColor = r.progressPct >= 75 ? "#2E7D46" : (r.progressPct >= 50 ? "#7A5B00" : "#A8471F");
+        tableHtml += '<td style="text-align:center;color:' + pctColor + ';font-weight:bold;">' + r.progressPct + '%</td>';
+        tableHtml += '</tr>';
+      });
+      tableHtml += '</tbody></table><br>';
+    });
+
+    // Summary section
+    var summaryHtml = '<h2 style="color:#123B35;font-family:Calibri,sans-serif;font-size:14pt;border-bottom:2px solid #1F5F55;padding-bottom:4px;">Summary by Output Area</h2>';
+    summaryHtml += '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:Calibri,sans-serif;font-size:10pt;width:100%;">';
+    summaryHtml += '<thead><tr style="background:#123B35;color:#fff;font-weight:bold;"><th>Output Area</th><th>Indicators</th><th>Target</th><th>This Month</th><th>Cumulative</th><th>Progress</th></tr></thead><tbody>';
+    var outputs2 = {};
+    rows.forEach(r=>{
+      if(!outputs2[r.output]) outputs2[r.output] = {target:0, thisMonth:0, cumulative:0, count:0};
+      outputs2[r.output].target += r.target;
+      outputs2[r.output].thisMonth += r.thisMonth;
+      outputs2[r.output].cumulative += r.cumulative;
+      outputs2[r.output].count++;
+    });
+    Object.keys(outputs2).forEach(o=>{
+      var s = outputs2[o];
+      var pct = s.target ? Math.round((s.cumulative / s.target) * 100) : 0;
+      summaryHtml += '<tr><td>' + escapeHtml(o) + '</td><td style="text-align:center;">' + s.count + '</td><td style="text-align:right;">' + s.target.toLocaleString() + '</td><td style="text-align:right;">' + s.thisMonth.toLocaleString() + '</td><td style="text-align:right;">' + s.cumulative.toLocaleString() + '</td><td style="text-align:center;font-weight:bold;">' + pct + '%</td></tr>';
+    });
+    summaryHtml += '</tbody></table><br>';
+
+    var legendHtml = '<h2 style="color:#123B35;font-family:Calibri,sans-serif;font-size:14pt;border-bottom:2px solid #1F5F55;padding-bottom:4px;">Legend</h2>';
+    legendHtml += '<p style="font-family:Calibri,sans-serif;font-size:10pt;"><b style="color:#2E7D46;">AUTO</b> — Pulled automatically from uploaded report files<br><b style="color:#7A5B00;">CHECK</b> — Auto-pulled but mapping unconfirmed, verify before submitting<br><b style="color:#A8471F;">MANUAL</b> — No file source, entered manually from your own log</p>';
+
+    var fullHtml = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Bath Research & Analytics System — ' + escapeHtml(monthLabel) + '</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page { size: landscape; margin: 1cm; }body { font-family: Calibri, sans-serif; font-size: 10pt; color: #17262B; }h1 { font-family: Calibri, sans-serif; font-size: 20pt; color: #123B35; margin-bottom: 2px; }.sub { color: #4E5A5C; font-size: 10pt; margin-bottom: 20px; }</style></head><body><h1>Bath Research &amp; Analytics System</h1><div class="sub">by James Gon<br>Reporting month: <b>' + escapeHtml(monthLabel) + '</b><br>Health data — Keew, Lerpiny, Kuerkhan, Thokchak, Dhoreak, Dhornor, Manajang, Tangnyang</div>' + tableHtml + summaryHtml + legendHtml + '</body></html>';
+
+    var blob = new Blob(["\uFEFF" + fullHtml], {type:"application/msword;charset=utf-8"});
+    var filename = "indicators_" + monthLabel + ".doc";
+    var ok = downloadBlob(blob, filename, "application/msword");
+    if(ok){
+      flashBtn("wordBtn", true, "✓ Downloaded");
+    }
+    // Show HTML source as preview backup
+    showExportPreview("Word Export — " + filename + " (copy HTML below and save as .doc if download was blocked)", fullHtml, "text/html");
+  } catch(e) {
+    console.error("Word export failed:", e);
+    flashBtn("wordBtn", false, "✗ Failed");
+  }
+});
+
+/* ---------------- INIT ---------------- */
+(async function init(){
+  try {
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById("monthPicker").value = y + "-" + m;
+    cumulative = await loadAllCumulative();
+    var key = await getMonthKey();
+    try{
+      var res = await storage.get(key);
+      if(res && res.value){
+        var parsed = JSON.parse(res.value);
+        Object.keys(parsed).forEach(code=>{
+          cumulative[code] = cumulative[code] || {men:0,women:0,boys:0,girls:0,total:0};
+          ["men","women","boys","girls","total"].forEach(k=>{
+            cumulative[code][k] -= (parsed[code][k]||0);
+            if(cumulative[code][k] < 0) cumulative[code][k] = 0;
+          });
+        });
+      }
+    }catch(e){}
+    renderLedger();
+  } catch(err) {
+    console.error("Init failed:", err);
+    try { renderLedger(); } catch(e) {}
+  }
+})();
+</script>
+</body>
+</html>
